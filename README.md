@@ -1,5 +1,4 @@
-# ThinkBot 🤖
-
+# ThinkBot 
 A simple AI-powered learning tool built with HTML, CSS, and JavaScript. 
 
 ---
@@ -54,6 +53,20 @@ To get key:
 ```js
 const API_KEY = "your-key-here";
 ```
+## API Key Security
+
+GitHub blocks commits that contain exposed API keys, and API keys should never be stored directly in public frontend code.
+
+Since ThinkBot is built as a frontend-only project (HTML, CSS, and JavaScript) and does not use a backend server, there is no secure place to store secrets such as API keys using environment variables (`.env` files).
+
+To keep API keys private:
+
+* Users enter their own OpenRouter API key through the input field at the top of the application.
+* The key is stored only in the browser session using `sessionStorage`.
+* The key is never hardcoded into the source code or committed to GitHub.
+* This approach prevents accidental exposure of API keys in public repositories.
+
+In a production application, API requests would typically be routed through a backend server where API keys can be stored securely using environment variables.
 
 ---
 
