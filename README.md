@@ -1,6 +1,7 @@
 # ThinkBot 
 A simple AI-powered learning tool built with HTML, CSS, and JavaScript. 
 
+LIVE LINK : https://thinkbot-uac5.onrender.com
 ---
 
 ## What It Does
