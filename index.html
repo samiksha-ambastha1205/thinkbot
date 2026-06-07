@@ -109,7 +109,13 @@
   const MODEL = "openrouter/auto";
 
   let API_KEY = sessionStorage.getItem("or_key") || "";
-  if (API_KEY) { document.getElementById("apiKeyInput").value = API_KEY; updateKeyStatus(true); }
+
+window.addEventListener("DOMContentLoaded", () => {
+  if (API_KEY) {
+    document.getElementById("apiKeyInput").value = API_KEY;
+    updateKeyStatus(true);
+  }
+});
 
   function saveKey() {
     const val = document.getElementById("apiKeyInput").value.trim();
@@ -164,11 +170,16 @@
 
     errorBox.classList.remove('visible');
 
-    if (!API_KEY) {
-      errorBox.textContent = '⚠ Please paste your OpenRouter API key above and click Save.';
-      errorBox.classList.add('visible');
-      return;
-    }
+    const currentKey = document.getElementById("apiKeyInput").value.trim();
+
+if (!currentKey) {
+  errorBox.textContent = '⚠ Please enter your OpenRouter API key.';
+  errorBox.classList.add('visible');
+  return;
+}
+
+API_KEY = currentKey;
+sessionStorage.setItem("or_key", currentKey);
 
     if (!input) {
       errorBox.textContent = '⚠ Please enter some text before running.';
@@ -180,21 +191,26 @@
     runBtn.textContent = 'Thinking…';
     responseArea.classList.add('visible');
     responseBox.innerHTML = `<div class="loader"><div class="loader-dot"></div><div class="loader-dot"></div><div class="loader-dot"></div></div>`;
-
+console.log("API_KEY:", API_KEY);
     try {
       const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${API_KEY}`,
-          "HTTP-Referer": "https://thinkbot.app",
-          "X-Title": "ThinkBot"
-        },
-        body: JSON.stringify({
-          model: MODEL,
-          messages: [{ role: "user", content: MODES[currentMode].prompt(input) }]
-        })
-      });
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "Authorization": `Bearer ${API_KEY}`,
+    "HTTP-Referer": window.location.origin,
+    "X-Title": "ThinkBot"
+  },
+  body: JSON.stringify({
+    model: MODEL,
+    messages: [
+      {
+        role: "user",
+        content: MODES[currentMode].prompt(input)
+      }
+    ]
+  })
+});
 
       const data = await res.json();
 
