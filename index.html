@@ -8,8 +8,8 @@
 <style>
   :root {
     --bg: #0d0d0d; --surface: #161616; --border: #2a2a2a;
-    --accent: #3b65b5; --accent2: #47d4ff; --text: #f0f0f0;
-    --muted: #2e9061; --radius: 12px;
+    --accent: #e8ff47; --accent2: #47d4ff; --text: #f0f0f0;
+    --muted: #666; --radius: 12px;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { background: var(--bg); color: var(--text); font-family: 'Syne', sans-serif; min-height: 100vh; display: flex; flex-direction: column; align-items: center; }
@@ -17,6 +17,13 @@
   .logo { font-size: 28px; font-weight: 800; letter-spacing: -1px; }
   .logo span { color: var(--accent); }
   .tagline { font-size: 13px; color: var(--muted); font-family: 'DM Mono', monospace; margin-left: auto; }
+  .api-bar { width: 100%; max-width: 800px; padding: 0 24px 16px; display: flex; gap: 8px; align-items: center; }
+  .api-bar input { flex: 1; background: var(--surface); border: 1.5px solid var(--border); border-radius: 8px; color: var(--text); font-family: 'DM Mono', monospace; font-size: 13px; padding: 10px 14px; outline: none; transition: border-color 0.2s; }
+  .api-bar input:focus { border-color: var(--accent); }
+  .api-bar input::placeholder { color: var(--muted); }
+  .api-save-btn { padding: 10px 18px; background: var(--accent); color: #0d0d0d; border: none; border-radius: 8px; font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700; cursor: pointer; white-space: nowrap; }
+  .api-status { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--muted); white-space: nowrap; }
+  .api-status.ok { color: #6eff99; }
   .modes { width: 100%; max-width: 800px; padding: 0 24px; display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
   .mode-btn { padding: 8px 16px; border: 1.5px solid var(--border); background: transparent; color: var(--muted); border-radius: 999px; font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
   .mode-btn:hover { border-color: var(--accent); color: var(--accent); }
@@ -62,13 +69,19 @@
   <div class="tagline">// powered by openrouter (free)</div>
 </header>
 
+<div class="api-bar">
+  <input type="password" id="apiKeyInput" placeholder="Paste your OpenRouter API key (sk-or-v1-...)" />
+  <button class="api-save-btn" onclick="saveKey()">Save</button>
+  <span class="api-status" id="apiStatus">no key</span>
+</div>
+
 <div class="modes">
-  <button class="mode-btn active" data-mode="explain"> Explain Concept</button>
-  <button class="mode-btn" data-mode="summarize"> Summarize</button>
-  <button class="mode-btn" data-mode="eli5"> ELI5</button>
-  <button class="mode-btn" data-mode="quiz"> Quiz Questions</button>
-  <button class="mode-btn" data-mode="bullets"> Bullet Points</button>
-  <button class="mode-btn" data-mode="flashcards"> Flashcards</button>
+  <button class="mode-btn active" data-mode="explain">💡 Explain Concept</button>
+  <button class="mode-btn" data-mode="summarize">📝 Summarize</button>
+  <button class="mode-btn" data-mode="eli5">🧒 ELI5</button>
+  <button class="mode-btn" data-mode="quiz">❓ Quiz Questions</button>
+  <button class="mode-btn" data-mode="bullets">• Bullet Points</button>
+  <button class="mode-btn" data-mode="flashcards">🃏 Flashcards</button>
 </div>
 
 <div class="card">
@@ -93,8 +106,24 @@
 
 <script>
   // ── CONFIG ───────────────────────────────────────────
-  const API_KEY = "OPEN-ROUTER-KEY-HERE";
-  const MODEL   = "openrouter/auto"; // fast free model
+  const MODEL = "openrouter/auto";
+
+  let API_KEY = sessionStorage.getItem("or_key") || "";
+  if (API_KEY) { document.getElementById("apiKeyInput").value = API_KEY; updateKeyStatus(true); }
+
+  function saveKey() {
+    const val = document.getElementById("apiKeyInput").value.trim();
+    if (!val) { updateKeyStatus(false); return; }
+    API_KEY = val;
+    sessionStorage.setItem("or_key", val);
+    updateKeyStatus(true);
+  }
+
+  function updateKeyStatus(ok) {
+    const el = document.getElementById("apiStatus");
+    el.textContent = ok ? "✓ key saved" : "no key";
+    el.className = "api-status" + (ok ? " ok" : "");
+  }
   // ────────────────────────────────────────────────────
 
   const MODES = {
@@ -134,6 +163,12 @@
     const runBtn = document.getElementById('runBtn');
 
     errorBox.classList.remove('visible');
+
+    if (!API_KEY) {
+      errorBox.textContent = '⚠ Please paste your OpenRouter API key above and click Save.';
+      errorBox.classList.add('visible');
+      return;
+    }
 
     if (!input) {
       errorBox.textContent = '⚠ Please enter some text before running.';
