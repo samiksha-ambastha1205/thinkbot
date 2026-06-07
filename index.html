@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ThinkBot – AI Learning Tool</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0d0d; --surface: #161616; --border: #2a2a2a;
+    --accent: #3b65b5; --accent2: #47d4ff; --text: #f0f0f0;
+    --muted: #2e9061; --radius: 12px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Syne', sans-serif; min-height: 100vh; display: flex; flex-direction: column; align-items: center; }
+  header { width: 100%; max-width: 800px; padding: 32px 24px 16px; display: flex; align-items: baseline; gap: 12px; }
+  .logo { font-size: 28px; font-weight: 800; letter-spacing: -1px; }
+  .logo span { color: var(--accent); }
+  .tagline { font-size: 13px; color: var(--muted); font-family: 'DM Mono', monospace; margin-left: auto; }
+  .modes { width: 100%; max-width: 800px; padding: 0 24px; display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+  .mode-btn { padding: 8px 16px; border: 1.5px solid var(--border); background: transparent; color: var(--muted); border-radius: 999px; font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+  .mode-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .mode-btn.active { background: var(--accent); border-color: var(--accent); color: #0d0d0d; }
+  .card { width: 100%; max-width: 800px; margin: 0 24px; padding: 24px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); }
+  .mode-label { font-size: 11px; font-family: 'DM Mono', monospace; color: var(--accent); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 10px; }
+  textarea { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: 'DM Mono', monospace; font-size: 14px; line-height: 1.6; padding: 14px; resize: vertical; min-height: 120px; outline: none; transition: border-color 0.2s; }
+  textarea:focus { border-color: var(--accent); }
+  textarea::placeholder { color: var(--muted); }
+  .actions { display: flex; align-items: center; gap: 12px; margin-top: 14px; }
+  .run-btn { padding: 12px 28px; background: var(--accent); color: #0d0d0d; border: none; border-radius: 8px; font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; cursor: pointer; transition: transform 0.15s, opacity 0.15s; }
+  .run-btn:hover { transform: translateY(-1px); }
+  .run-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+  .clear-btn { padding: 12px 20px; background: transparent; color: var(--muted); border: 1.5px solid var(--border); border-radius: 8px; font-family: 'Syne', sans-serif; font-size: 14px; cursor: pointer; transition: color 0.2s, border-color 0.2s; }
+  .clear-btn:hover { color: var(--text); border-color: var(--text); }
+  .char-count { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--muted); margin-left: auto; }
+  .response-area { margin-top: 20px; display: none; }
+  .response-area.visible { display: block; }
+  .response-header { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; font-size: 11px; font-family: 'DM Mono', monospace; color: var(--accent2); letter-spacing: 2px; text-transform: uppercase; }
+  .dot { width: 6px; height: 6px; background: var(--accent2); border-radius: 50%; }
+  .response-box { background: var(--bg); border: 1px solid var(--border); border-left: 3px solid var(--accent2); border-radius: 8px; padding: 18px; font-family: 'DM Mono', monospace; font-size: 14px; line-height: 1.75; white-space: pre-wrap; word-break: break-word; color: #d8d8d8; min-height: 80px; }
+  .loader { display: flex; align-items: center; gap: 6px; padding: 18px; }
+  .loader-dot { width: 8px; height: 8px; background: var(--accent); border-radius: 50%; animation: bounce 1.2s infinite; }
+  .loader-dot:nth-child(2) { animation-delay: 0.2s; }
+  .loader-dot:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes bounce { 0%, 80%, 100% { transform: translateY(0); opacity: 0.4; } 40% { transform: translateY(-8px); opacity: 1; } }
+  .error-box { background: #1a0000; border: 1px solid #5a0000; border-radius: 8px; padding: 14px; color: #ff6b6b; font-family: 'DM Mono', monospace; font-size: 13px; margin-top: 12px; display: none; }
+  .error-box.visible { display: block; }
+  .history-section { width: 100%; max-width: 800px; margin: 20px 24px 0; padding-bottom: 40px; }
+  .history-title { font-size: 11px; font-family: 'DM Mono', monospace; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 12px; }
+  .history-item { border: 1px solid var(--border); border-radius: 8px; margin-bottom: 10px; overflow: hidden; cursor: pointer; transition: border-color 0.2s; }
+  .history-item:hover { border-color: var(--accent); }
+  .history-q { padding: 10px 14px; background: var(--surface); font-size: 13px; color: var(--muted); display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .history-q .badge { font-size: 10px; background: var(--border); color: var(--muted); padding: 2px 8px; border-radius: 999px; white-space: nowrap; font-family: 'DM Mono', monospace; }
+  .history-a { padding: 12px 14px; background: var(--bg); font-family: 'DM Mono', monospace; font-size: 12px; line-height: 1.6; color: #999; max-height: 80px; overflow: hidden; white-space: pre-wrap; }
+  .empty-history { font-size: 13px; color: var(--muted); font-family: 'DM Mono', monospace; text-align: center; padding: 20px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Think<span>Bot</span></div>
+  <div class="tagline">// powered by openrouter (free)</div>
+</header>
+
+<div class="modes">
+  <button class="mode-btn active" data-mode="explain"> Explain Concept</button>
+  <button class="mode-btn" data-mode="summarize"> Summarize</button>
+  <button class="mode-btn" data-mode="eli5"> ELI5</button>
+  <button class="mode-btn" data-mode="quiz"> Quiz Questions</button>
+  <button class="mode-btn" data-mode="bullets"> Bullet Points</button>
+  <button class="mode-btn" data-mode="flashcards"> Flashcards</button>
+</div>
+
+<div class="card">
+  <div class="mode-label" id="modeLabel">Explain a Concept</div>
+  <textarea id="userInput" placeholder="Type your concept, text, or topic here..." maxlength="2000"></textarea>
+  <div class="actions">
+    <button class="run-btn" id="runBtn" onclick="runQuery()">Run ↗</button>
+    <button class="clear-btn" onclick="clearAll()">Clear</button>
+    <span class="char-count" id="charCount">0 / 2000</span>
+  </div>
+  <div class="error-box" id="errorBox"></div>
+  <div class="response-area" id="responseArea">
+    <div class="response-header"><div class="dot"></div>ThinkBot Response</div>
+    <div class="response-box" id="responseBox"></div>
+  </div>
+</div>
+
+<div class="history-section">
+  <div class="history-title">// session history</div>
+  <div id="historyList"><div class="empty-history">No queries yet. Run something above ↑</div></div>
+</div>
+
+<script>
+  // ── CONFIG ───────────────────────────────────────────
+  const API_KEY = "OPEN-ROUTER-KEY-HERE";
+  const MODEL   = "openrouter/auto"; // fast free model
+  // ────────────────────────────────────────────────────
+
+  const MODES = {
+    explain:    { label: "Explain a Concept",       prompt: t => `Explain the following concept clearly for a student:\n\n"${t}"\n\nGive a brief definition and a practical example.` },
+    summarize:  { label: "Summarize Text",           prompt: t => `Summarize the following in 3-5 key points:\n\n"${t}"\n\nBe concise.` },
+    eli5:       { label: "Explain Like I'm 5",       prompt: t => `Explain this to a 5-year-old using simple words and a fun analogy:\n\n"${t}"` },
+    quiz:       { label: "Generate Quiz Questions",  prompt: t => `Generate 5 quiz questions with answers based on:\n\n"${t}"\n\nFormat: Q1: ... Answer: ...` },
+    bullets:    { label: "Convert to Bullet Points", prompt: t => `Convert the following into clear bullet points capturing all key ideas:\n\n"${t}"` },
+    flashcards: { label: "Generate Flashcards",      prompt: t => `Create 5 flashcards from:\n\n"${t}"\n\nFormat each as:\nFront: [term]\nBack: [definition]` },
+  };
+
+  let currentMode = 'explain';
+  let history = [];
+
+  document.querySelectorAll('.mode-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentMode = btn.dataset.mode;
+      document.getElementById('modeLabel').textContent = MODES[currentMode].label;
+    });
+  });
+
+  document.getElementById('userInput').addEventListener('input', function() {
+    document.getElementById('charCount').textContent = `${this.value.length} / 2000`;
+  });
+
+  document.getElementById('userInput').addEventListener('keydown', e => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') runQuery();
+  });
+
+  async function runQuery() {
+    const input = document.getElementById('userInput').value.trim();
+    const errorBox = document.getElementById('errorBox');
+    const responseArea = document.getElementById('responseArea');
+    const responseBox = document.getElementById('responseBox');
+    const runBtn = document.getElementById('runBtn');
+
+    errorBox.classList.remove('visible');
+
+    if (!input) {
+      errorBox.textContent = '⚠ Please enter some text before running.';
+      errorBox.classList.add('visible');
+      return;
+    }
+
+    runBtn.disabled = true;
+    runBtn.textContent = 'Thinking…';
+    responseArea.classList.add('visible');
+    responseBox.innerHTML = `<div class="loader"><div class="loader-dot"></div><div class="loader-dot"></div><div class="loader-dot"></div></div>`;
+
+    try {
+      const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${API_KEY}`,
+          "HTTP-Referer": "https://thinkbot.app",
+          "X-Title": "ThinkBot"
+        },
+        body: JSON.stringify({
+          model: MODEL,
+          messages: [{ role: "user", content: MODES[currentMode].prompt(input) }]
+        })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(JSON.stringify(data.error || data));
+
+      const text = data.choices?.[0]?.message?.content || '(No response)';
+      responseBox.textContent = text;
+      addToHistory(input, text, currentMode);
+
+    } catch (err) {
+      responseBox.textContent = '';
+      responseArea.classList.remove('visible');
+      errorBox.textContent = `Error: ${err.message}`;
+      errorBox.classList.add('visible');
+    } finally {
+      runBtn.disabled = false;
+      runBtn.textContent = 'Run ↗';
+    }
+  }
+
+  function addToHistory(q, a, mode) {
+    history.unshift({ q, a, mode, label: MODES[mode].label });
+    renderHistory();
+  }
+
+  function renderHistory() {
+    const list = document.getElementById('historyList');
+    if (!history.length) { list.innerHTML = '<div class="empty-history">No queries yet.</div>'; return; }
+    list.innerHTML = history.map((item, i) => `
+      <div class="history-item" onclick="loadHistory(${i})">
+        <div class="history-q">
+          <span>${item.q.length > 80 ? item.q.slice(0,80)+'…' : item.q}</span>
+          <span class="badge">${item.label}</span>
+        </div>
+        <div class="history-a">${item.a}</div>
+      </div>
+    `).join('');
+  }
+
+  function loadHistory(i) {
+    const item = history[i];
+    document.getElementById('userInput').value = item.q;
+    document.getElementById('charCount').textContent = `${item.q.length} / 2000`;
+    document.getElementById('responseBox').textContent = item.a;
+    document.getElementById('responseArea').classList.add('visible');
+    currentMode = item.mode;
+    document.getElementById('modeLabel').textContent = item.label;
+    document.querySelectorAll('.mode-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === item.mode));
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function clearAll() {
+    document.getElementById('userInput').value = '';
+    document.getElementById('charCount').textContent = '0 / 2000';
+    document.getElementById('responseArea').classList.remove('visible');
+    document.getElementById('errorBox').classList.remove('visible');
+    document.getElementById('responseBox').textContent = '';
+  }
+</script>
+</body>
+</html>
